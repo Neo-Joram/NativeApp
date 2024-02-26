@@ -10,27 +10,24 @@ export default function NetWorkInfo() {
   const [connectionType, setConnectionType] = useState();
   const [ipAddress, setIpAddress] = useState();
 
+  const [batteryLevel, setBatteryLevel] = useState(null);
+  const [batteryState, setBatteryState] = useState(null);
+  const [lowPowerMode, setLowPowerMode] = useState(null);
+
   useEffect(() => {
     const fetchNetworkInfo = async () => {
-      // Check if the device is connected to the internet
       const networkState = await Network.getNetworkStateAsync();
       setIsConnected(networkState.isConnected);
 
-      // Get the type of connection (e.g., cellular, Wi-Fi)
       const connectionInfo = await Network.getNetworkStateAsync();
-      setConnectionType(connectionInfo.ip);
+      setConnectionType(connectionInfo.type);
 
-      // Get the IP address
       const ip = await Network.getIpAddressAsync();
       setIpAddress(ip);
     };
 
     fetchNetworkInfo();
   }, []);
-
-  const [batteryLevel, setBatteryLevel] = useState(null);
-  const [batteryState, setBatteryState] = useState(null);
-  const [lowPowerMode, setLowPowerMode] = useState(null);
 
   useEffect(() => {
     const fetchBatteryInfo = async () => {
