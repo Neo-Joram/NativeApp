@@ -8,6 +8,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { PaperProvider } from "react-native-paper";
 
 import { useColorScheme } from "@/src/components/useColorScheme";
 
@@ -52,11 +53,13 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
+    <PaperProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ presentation: "modal" }} />
         </Stack>
       </ThemeProvider>
+    </PaperProvider>
   );
 }

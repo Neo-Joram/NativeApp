@@ -59,43 +59,47 @@ export default function TabLayout() {
   const toggleTheme = () => {};
 
   return (
-      <DrawerLayoutAndroid
-        ref={drawerRef}
-        drawerWidth={300}
-        drawerPosition="left"
-        renderNavigationView={() => (
-          <NavigationView
-            drawer={drawerRef}
-            navigation={navigation}
-            toggleTheme={toggleTheme}
-          />
-        )}
+    <DrawerLayoutAndroid
+      ref={drawerRef}
+      drawerWidth={300}
+      drawerPosition="left"
+      renderNavigationView={() => (
+        <NavigationView
+          drawer={drawerRef}
+          navigation={navigation}
+          toggleTheme={toggleTheme}
+        />
+      )}
+    >
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          // Disable the static render of the header on web
+          // to prevent a hydration error in React Navigation v6.
+          headerShown: useClientOnlyValue(false, true),
+        }}
       >
-        <Tabs
-          screenOptions={{
-            tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-            // Disable the static render of the header on web
-            // to prevent a hydration error in React Navigation v6.
-            headerShown: useClientOnlyValue(false, true),
-          }}
-        >
-          <Tabs.Screen
-            name="index"
-            options={generateTabScreenOptions("Dashboard", "dashboard")}
-          />
-          <Tabs.Screen
-            name="calculator"
-            options={generateTabScreenOptions("Calculator", "calculator")}
-          />
-          <Tabs.Screen
-            name="contactUs"
-            options={generateTabScreenOptions("ContactUs", "code")}
-          />
-          <Tabs.Screen
-            name="contacts"
-            options={generateTabScreenOptions("Contacts", "phone")}
-          />
-        </Tabs>
-      </DrawerLayoutAndroid>
+        <Tabs.Screen
+          name="index"
+          options={generateTabScreenOptions("Dashboard", "dashboard")}
+        />
+        <Tabs.Screen
+          name="calculator"
+          options={generateTabScreenOptions("Calculator", "calculator")}
+        />
+        <Tabs.Screen
+          name="contactUs"
+          options={generateTabScreenOptions("ContactUs", "code")}
+        />
+        <Tabs.Screen
+          name="contacts"
+          options={generateTabScreenOptions("Contacts", "phone")}
+        />
+        <Tabs.Screen
+          name="quiz"
+          options={generateTabScreenOptions("Quiz", "book")}
+        />
+      </Tabs>
+    </DrawerLayoutAndroid>
   );
 }
