@@ -33,4 +33,19 @@ const styles = StyleSheet.create({
     height: 1,
     width: "80%",
   },
+
+  accountInfo: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+  },
+  authButton: {
+    padding: 10,
+    borderWidth: 2,
+    borderColor: "gray",
+    borderRadius: 10,
+  },
 });
