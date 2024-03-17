@@ -14,6 +14,7 @@ import { DataTable } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
 import * as SQLite from "expo-sqlite";
 import { Platform } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
 function openDatabase() {
   if (Platform.OS === "web") {
@@ -31,15 +32,16 @@ function openDatabase() {
 }
 const db = openDatabase();
 
-export default function QuestionsPart({questions, getQuestions}) {
+export default function QuestionsPart({ quizes, questions, getQuestions }) {
   const { loading, setLoading } = useContext(stateContext);
   const [visible, setVisible] = useState(false);
-  const [quizName, setQuizName] = useState("");
+  const [question, setQuestion] = useState("");
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 8, 10]);
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );
+  const [selectedValue, setSelectedValue] = useState("");
 
   const from = page * itemsPerPage;
   const to = Math.min((page + 1) * itemsPerPage, questions.length);
@@ -52,31 +54,12 @@ export default function QuestionsPart({questions, getQuestions}) {
     setPage(0);
   }, [itemsPerPage]);
 
-  async function addQuestion() {
-    setLoading(true);
-    db.transaction((tx) => {
-      tx.executeSql(
-        "insert into questions(quizName, dateTime) values (?, ?)",
-        [quizName, new Date().toLocaleDateString()],
-        (_, { rowsAffected }) => {
-          setLoading(false);
-          hideModal();
-          if (rowsAffected > 0) {
-            getQuestions();
-          } else {
-            console.log("No rows affected.");
-          }
-        }
-      );
-    });
-  }
-
   function handleUpdateData(id, qn, todo) {
-    setUpdateData({ id, quizName: qn, action: todo });
+    setUpdateData({ id, question: qn, action: todo });
     showModal();
   }
 
-  async function doQuestion() {
+  async function questionAction() {
     if (updateData?.action === "delete") {
       setLoading(true);
       db.transaction((tx) => {
@@ -97,8 +80,8 @@ export default function QuestionsPart({questions, getQuestions}) {
     } else if (updateData?.action === "update") {
       db.transaction((tx) => {
         tx.executeSql(
-          "update questions set quizName=? where id=?",
-          [updateData?.quizName, updateData?.id],
+          "update questions set question=? where id=?",
+          [updateData?.question, updateData?.id],
           (_, { rowsAffected }) => {
             setLoading(false);
             hideModal();
@@ -111,7 +94,30 @@ export default function QuestionsPart({questions, getQuestions}) {
         );
       });
     } else {
-      return;
+      setLoading(true);
+      db.transaction((tx) => {
+        tx.executeSql(
+          "select * from quizes where id=?",
+          [selectedValue],
+          (_, { quiz }) => {
+            if (quiz.length === 0) {
+              return console.log("Quiz not found");
+            }
+
+            "insert into questions(quizId, question) values (?, ?)",
+              [selectedValue, question],
+              (_, { rowsAffected }) => {
+                setLoading(false);
+                hideModal();
+                if (rowsAffected > 0) {
+                  getQuestions();
+                } else {
+                  console.log("No rows affected.");
+                }
+              };
+          }
+        );
+      });
     }
   }
 
@@ -119,7 +125,14 @@ export default function QuestionsPart({questions, getQuestions}) {
     <View>
       <View style={styles.thead}>
         <MonoText>Manage the questions</MonoText>
-        <Button mode="contained" icon={"plus"} onPress={showModal}>
+        <Button
+          mode="contained"
+          icon={"plus"}
+          onPress={() => {
+            setUpdateData({ action: "add" });
+            showModal();
+          }}
+        >
           New
         </Button>
       </View>
@@ -127,23 +140,23 @@ export default function QuestionsPart({questions, getQuestions}) {
       <DataTable>
         <DataTable.Header>
           <DataTable.Title>#</DataTable.Title>
-          <DataTable.Title>QuizName</DataTable.Title>
-          <DataTable.Title numeric>Question</DataTable.Title>
+          <DataTable.Title>Quiz Id</DataTable.Title>
+          <DataTable.Title>Question</DataTable.Title>
           <DataTable.Title numeric>Do</DataTable.Title>
         </DataTable.Header>
 
-        {questions.slice(from, to).map((item) => (
-          <DataTable.Row key={item.id}>
-            <DataTable.Cell>{item.id}</DataTable.Cell>
-            <DataTable.Cell>{item.quizName}</DataTable.Cell>
-            <DataTable.Cell numeric>{item.dateTime}</DataTable.Cell>
+        {questions.slice(from, to).map((item, index) => (
+          <DataTable.Row key={index}>
+            <DataTable.Cell>{index + 1}</DataTable.Cell>
+            <DataTable.Cell>{item.quizId}</DataTable.Cell>
+            <DataTable.Cell>{item.question}</DataTable.Cell>
             <DataTable.Cell numeric>
               <IconButton
                 icon={"pen"}
                 size={13}
                 mode="contained"
                 onPress={() =>
-                  handleUpdateData(item.id, item.quizName, "update")
+                  handleUpdateData(item.id, item.question, "update")
                 }
               />{" "}
               <IconButton
@@ -151,7 +164,7 @@ export default function QuestionsPart({questions, getQuestions}) {
                 size={13}
                 mode="contained"
                 onPress={() =>
-                  handleUpdateData(item.id, item.quizName, "delete")
+                  handleUpdateData(item.id, item.question, "delete")
                 }
               />
             </DataTable.Cell>
@@ -186,21 +199,35 @@ export default function QuestionsPart({questions, getQuestions}) {
           )}
 
           <View style={{ backgroundColor: "transparent" }}>
+            <Picker
+              selectedValue={selectedValue}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedValue(itemValue)
+              }
+              style={styles.picker}
+            >
+              <Picker.Item label="Choose quiz" value={""} />
+              {quizes.map((item, index) => (
+                <Picker.Item
+                  key={index}
+                  label={index + 0 + " " + item.quizName}
+                  value={item.id}
+                />
+              ))}
+            </Picker>
+
             <TextInput
               label={"Quiz name"}
               mode="outlined"
-              value={updateData?.quizName}
+              value={updateData?.question}
               placeholder="Quiz name..."
-              onChangeText={(text) => setQuizName(text)}
+              onChangeText={(text) => setQuestion(text)}
             />
             <Button
               mode="contained"
               loading={loading}
               style={{ marginTop: 15 }}
-              onPress={() => {
-                if (updateData?.action) doQuestion();
-                else addQuestion();
-              }}
+              onPress={questionAction}
             >
               {updateData?.action === "update"
                 ? "Update quiz"

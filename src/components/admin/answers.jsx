@@ -30,16 +30,17 @@ function openDatabase() {
 }
 const db = openDatabase();
 
-export default function AnswersPart() {
+export default function AnswersPart({ questions, answers, getAnswers }) {
   const { loading, setLoading } = useContext(stateContext);
   const [visible, setVisible] = useState(false);
-  const [quizName, setQuizName] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [isCorrect, setIsCorrect] = useState("");
+  const [selectedValue, setSelectedValue] = useState("");
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([5, 8, 10]);
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );
-  const [quizes, setQuizes] = useState([]);
 
   const from = page * itemsPerPage;
   const to = Math.min((page + 1) * itemsPerPage, quizes.length);
@@ -52,43 +53,12 @@ export default function AnswersPart() {
     setPage(0);
   }, [itemsPerPage]);
 
-  function getQuizes() {
-    db.transaction((tx) => {
-      tx.executeSql("select * from quizes", [], (_, { rows }) => {
-        setQuizes(rows._array);
-      });
-    });
-  }
-
-  useEffect(() => {
-    getQuizes();
-  }, []);
-
-  async function addQuiz() {
-    setLoading(true);
-    db.transaction((tx) => {
-      tx.executeSql(
-        "insert into quizes(quizName, dateTime) values (?, ?)",
-        [quizName, new Date().toLocaleDateString()],
-        (_, { rowsAffected }) => {
-          setLoading(false);
-          hideModal();
-          if (rowsAffected > 0) {
-            getQuizes();
-          } else {
-            console.log("No rows affected.");
-          }
-        }
-      );
-    });
-  }
-
   function handleUpdateData(id, qn, todo) {
     setUpdateData({ id, quizName: qn, action: todo });
     showModal();
   }
 
-  async function doQuiz() {
+  async function answersAction() {
     if (updateData?.action === "delete") {
       setLoading(true);
       db.transaction((tx) => {
@@ -123,7 +93,31 @@ export default function AnswersPart() {
         );
       });
     } else {
-      return;
+      setLoading(true);
+      db.transaction((tx) => {
+        tx.executeSql(
+          "select * from questions where id=?",
+          [],
+          (_, { question }) => {
+            if (question.length === 0) {
+              return console.log("Question not found");
+              setLoading(false);
+              hideModal();
+            }
+            "insert into answers (questionId, answer, isCorrect) values (?, ?, ?)",
+              [selectedValue, answer, isCorrect],
+              (_, { rowsAffected }) => {
+                setLoading(false);
+                hideModal();
+                if (rowsAffected > 0) {
+                  getQuizes();
+                } else {
+                  console.log("No rows affected.");
+                }
+              };
+          }
+        );
+      });
     }
   }
 
@@ -139,32 +133,30 @@ export default function AnswersPart() {
       <DataTable>
         <DataTable.Header>
           <DataTable.Title>#</DataTable.Title>
-          <DataTable.Title>QuizName</DataTable.Title>
-          <DataTable.Title numeric>Date</DataTable.Title>
+          <DataTable.Title>Question Id</DataTable.Title>
+          <DataTable.Title>Answer</DataTable.Title>
+          <DataTable.Title numeric>isCorrect</DataTable.Title>
           <DataTable.Title numeric>Do</DataTable.Title>
         </DataTable.Header>
 
         {quizes.slice(from, to).map((item) => (
           <DataTable.Row key={item.id}>
             <DataTable.Cell>{item.id}</DataTable.Cell>
-            <DataTable.Cell>{item.quizName}</DataTable.Cell>
-            <DataTable.Cell numeric>{item.dateTime}</DataTable.Cell>
+            <DataTable.Cell>{item.questionId}</DataTable.Cell>
+            <DataTable.Cell>{item.answer}</DataTable.Cell>
+            <DataTable.Cell numeric>{item.isCorrect}</DataTable.Cell>
             <DataTable.Cell numeric>
               <IconButton
                 icon={"pen"}
                 size={13}
                 mode="contained"
-                onPress={() =>
-                  handleUpdateData(item.id, item.quizName, "update")
-                }
+                onPress={() => handleUpdateData(item.id, item.answer, "update")}
               />{" "}
               <IconButton
                 icon={"basket"}
                 size={13}
                 mode="contained"
-                onPress={() =>
-                  handleUpdateData(item.id, item.quizName, "delete")
-                }
+                onPress={() => handleUpdateData(item.id, item.answer, "delete")}
               />
             </DataTable.Cell>
           </DataTable.Row>
@@ -198,12 +190,28 @@ export default function AnswersPart() {
           )}
 
           <View style={{ backgroundColor: "transparent" }}>
+            <Picker
+              selectedValue={selectedValue}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedValue(itemValue)
+              }
+              style={styles.picker}
+            >
+              <Picker.Item label="Choose quiz" value={""} />
+              {questions.map((item, index) => (
+                <Picker.Item
+                  key={index}
+                  label={index + 0 + " " + item.question}
+                  value={item.id}
+                />
+              ))}
+            </Picker>
             <TextInput
               label={"Quiz name"}
               mode="outlined"
-              value={updateData?.quizName}
-              placeholder="Quiz name..."
-              onChangeText={(text) => setQuizName(text)}
+              value={updateData?.answer}
+              placeholder="Answer..."
+              onChangeText={(text) => setAnswer(text)}
             />
             <Button
               mode="contained"

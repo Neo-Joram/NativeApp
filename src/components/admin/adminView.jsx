@@ -79,7 +79,11 @@ export default function AdminView() {
       {value === "quiz" ? (
         <QuizesPart quizes={quizes} getQuizes={getQuizes} />
       ) : value === "question" ? (
-        <QuestionsPart questions={questions} getQuestions={getQuestions} />
+        <QuestionsPart
+          questions={questions}
+          getQuestions={getQuestions}
+          quizes={quizes}
+        />
       ) : (
         <AnswersPart />
       )}

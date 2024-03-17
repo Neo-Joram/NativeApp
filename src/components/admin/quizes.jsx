@@ -51,31 +51,12 @@ export default function QuizesPart({ quizes, getQuizes }) {
     setPage(0);
   }, [itemsPerPage]);
 
-  async function addQuiz() {
-    setLoading(true);
-    db.transaction((tx) => {
-      tx.executeSql(
-        "insert into quizes(quizName, dateTime) values (?, ?)",
-        [quizName, new Date().toLocaleDateString()],
-        (_, { rowsAffected }) => {
-          setLoading(false);
-          hideModal();
-          if (rowsAffected > 0) {
-            getQuizes();
-          } else {
-            console.log("No rows affected.");
-          }
-        }
-      );
-    });
-  }
-
   function handleUpdateData(id, qn, todo) {
     setUpdateData({ id, quizName: qn, action: todo });
     showModal();
   }
 
-  async function doQuiz() {
+  async function quizAction() {
     if (updateData?.action === "delete") {
       setLoading(true);
       db.transaction((tx) => {
@@ -94,10 +75,11 @@ export default function QuizesPart({ quizes, getQuizes }) {
         );
       });
     } else if (updateData?.action === "update") {
+      setLoading(true);
       db.transaction((tx) => {
         tx.executeSql(
           "update quizes set quizName=? where id=?",
-          [updateData?.quizName, updateData?.id],
+          [quizName, updateData?.id],
           (_, { rowsAffected }) => {
             setLoading(false);
             hideModal();
@@ -110,7 +92,22 @@ export default function QuizesPart({ quizes, getQuizes }) {
         );
       });
     } else {
-      return;
+      setLoading(true);
+      db.transaction((tx) => {
+        tx.executeSql(
+          "insert into quizes(quizName, dateTime) values (?, ?)",
+          [quizName, new Date().toLocaleDateString()],
+          (_, { rowsAffected }) => {
+            setLoading(false);
+            hideModal();
+            if (rowsAffected > 0) {
+              getQuizes();
+            } else {
+              console.log("No rows affected.");
+            }
+          }
+        );
+      });
     }
   }
 
@@ -118,7 +115,14 @@ export default function QuizesPart({ quizes, getQuizes }) {
     <View>
       <View style={styles.thead}>
         <MonoText>Manage the quizes</MonoText>
-        <Button mode="contained" icon={"plus"} onPress={showModal}>
+        <Button
+          mode="contained"
+          icon={"plus"}
+          onPress={() => {
+            setUpdateData({ action: "add" });
+            showModal();
+          }}
+        >
           New
         </Button>
       </View>
@@ -131,9 +135,9 @@ export default function QuizesPart({ quizes, getQuizes }) {
           <DataTable.Title numeric>Do</DataTable.Title>
         </DataTable.Header>
 
-        {quizes.slice(from, to).map((item) => (
-          <DataTable.Row key={item.id}>
-            <DataTable.Cell>{item.id}</DataTable.Cell>
+        {quizes.slice(from, to).map((item, index) => (
+          <DataTable.Row key={index}>
+            <DataTable.Cell>{index+1}</DataTable.Cell>
             <DataTable.Cell>{item.quizName}</DataTable.Cell>
             <DataTable.Cell numeric>{item.dateTime}</DataTable.Cell>
             <DataTable.Cell numeric>
@@ -188,7 +192,7 @@ export default function QuizesPart({ quizes, getQuizes }) {
             <TextInput
               label={"Quiz name"}
               mode="outlined"
-              value={updateData?.quizName}
+              defaultValue={updateData?.quizName}
               placeholder="Quiz name..."
               onChangeText={(text) => setQuizName(text)}
             />
@@ -196,10 +200,7 @@ export default function QuizesPart({ quizes, getQuizes }) {
               mode="contained"
               loading={loading}
               style={{ marginTop: 15 }}
-              onPress={() => {
-                if (updateData?.action) doQuiz();
-                else addQuiz();
-              }}
+              onPress={quizAction}
             >
               {updateData?.action === "update"
                 ? "Update quiz"

@@ -42,6 +42,9 @@ export default function QuizScreen() {
       tx.executeSql(
         "create table if not exists answers (id integer primary key not null, questionId integer, answer string, isCorrect integer, foreign key (questionId) references questions(id))"
       );
+      tx.executeSql(
+        "create table if not exists attempts (id integer primary key not null, userId integer, quizId integer, marks integer, foreign key (userId) references users(id), foreign key (quizId) references quizes(id))"
+      );
     });
   }, []);
 
