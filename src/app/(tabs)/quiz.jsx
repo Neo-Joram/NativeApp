@@ -40,12 +40,29 @@ export default function QuizScreen() {
         "create table if not exists questions (id integer primary key not null, quizId integer, question string, foreign key (quizId) references quizes(id))"
       );
       tx.executeSql(
-        "create table if not exists answers (id integer primary key not null, questionId integer, answer string, isCorrect integer, foreign key (questionId) references questions(id))"
+        "create table if not exists answers (id integer primary key not null, questionId integer, answer string, isCorrect boolean, foreign key (questionId) references questions(id))"
       );
       tx.executeSql(
         "create table if not exists attempts (id integer primary key not null, userId integer, quizId integer, marks integer, foreign key (userId) references users(id), foreign key (quizId) references quizes(id))"
       );
     });
+    // db.transaction((tx) => {
+    //   tx.executeSql(
+    //     "BEGIN TRANSACTION; " +
+    //       "DELETE FROM questions; " +
+    //       "DELETE FROM quizes; " +
+    //       "DELETE FROM sqlite_sequence WHERE name='questions'; " +
+    //       "DELETE FROM sqlite_sequence WHERE name='quizes'; " +
+    //       "COMMIT;",
+    //     [],
+    //     () => {
+    //       console.log("Tables truncated successfully.");
+    //     },
+    //     (_, error) => {
+    //       console.log("Error truncating tables:", error);
+    //     }
+    //   );
+    // });
   }, []);
 
   useEffect(() => {
@@ -82,7 +99,7 @@ export default function QuizScreen() {
   return (
     <View style={{ height: "100%" }}>
       {user?.role === "admin" ? (
-        <AdminView />
+        <AdminView db={db} />
       ) : user?.role === "user" ? (
         <UserView />
       ) : (

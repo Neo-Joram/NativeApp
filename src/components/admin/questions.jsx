@@ -3,7 +3,6 @@ import { MonoText } from "@/src/components/StyledText";
 import {
   Button,
   IconButton,
-  List,
   Modal,
   Portal,
   TextInput,
@@ -12,27 +11,9 @@ import { useContext, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { DataTable } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
-function openDatabase() {
-  if (Platform.OS === "web") {
-    return {
-      transaction: () => {
-        return {
-          executeSql: () => {},
-        };
-      },
-    };
-  }
-
-  const db = SQLite.openDatabase("mobiledb.db");
-  return db;
-}
-const db = openDatabase();
-
-export default function QuestionsPart({ quizes, questions, getQuestions }) {
+export default function QuestionsPart({ db, quizes, questions, getQuestions }) {
   const { loading, setLoading } = useContext(stateContext);
   const [visible, setVisible] = useState(false);
   const [question, setQuestion] = useState("");
@@ -81,7 +62,7 @@ export default function QuestionsPart({ quizes, questions, getQuestions }) {
       db.transaction((tx) => {
         tx.executeSql(
           "update questions set question=? where id=?",
-          [updateData?.question, updateData?.id],
+          [question, updateData?.id],
           (_, { rowsAffected }) => {
             setLoading(false);
             hideModal();
@@ -97,24 +78,26 @@ export default function QuestionsPart({ quizes, questions, getQuestions }) {
       setLoading(true);
       db.transaction((tx) => {
         tx.executeSql(
-          "select * from quizes where id=?",
+          "SELECT * FROM quizes WHERE id=?",
           [selectedValue],
-          (_, { quiz }) => {
-            if (quiz.length === 0) {
-              return console.log("Quiz not found");
-            }
-
-            "insert into questions(quizId, question) values (?, ?)",
-              [selectedValue, question],
-              (_, { rowsAffected }) => {
-                setLoading(false);
-                hideModal();
-                if (rowsAffected > 0) {
-                  getQuestions();
-                } else {
-                  console.log("No rows affected.");
+          (_, { rows }) => {
+            setLoading(false);
+            hideModal();
+            if (rows.length === 0) {
+              console.log("Quiz not found");
+            } else {
+              tx.executeSql(
+                "INSERT INTO questions(quizId, question) VALUES (?, ?)",
+                [selectedValue, question],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    getQuestions();
+                  } else {
+                    console.log("No rows affected.");
+                  }
                 }
-              };
+              );
+            }
           }
         );
       });
@@ -217,10 +200,10 @@ export default function QuestionsPart({ quizes, questions, getQuestions }) {
             </Picker>
 
             <TextInput
-              label={"Quiz name"}
+              label={"Question"}
               mode="outlined"
-              value={updateData?.question}
-              placeholder="Quiz name..."
+              defaultValue={updateData?.question}
+              placeholder="Question..."
               onChangeText={(text) => setQuestion(text)}
             />
             <Button
@@ -230,10 +213,10 @@ export default function QuestionsPart({ quizes, questions, getQuestions }) {
               onPress={questionAction}
             >
               {updateData?.action === "update"
-                ? "Update quiz"
+                ? "Update question"
                 : updateData?.action === "delete"
-                ? "Delete quiz"
-                : "Add quiz"}
+                ? "Delete question"
+                : "Add question"}
             </Button>
           </View>
         </Modal>

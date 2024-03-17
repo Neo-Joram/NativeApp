@@ -6,29 +6,12 @@ import { StyleSheet } from "react-native";
 import QuizesPart from "./quizes";
 import QuestionsPart from "./questions";
 import AnswersPart from "./answers";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
 
-function openDatabase() {
-  if (Platform.OS === "web") {
-    return {
-      transaction: () => {
-        return {
-          executeSql: () => {},
-        };
-      },
-    };
-  }
-
-  const db = SQLite.openDatabase("mobiledb.db");
-  return db;
-}
-const db = openDatabase();
-
-export default function AdminView() {
+export default function AdminView({ db }) {
   const [value, setValue] = useState("quiz");
   const [quizes, setQuizes] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState([]);
 
   function getQuizes() {
     db.transaction((tx) => {
@@ -46,9 +29,18 @@ export default function AdminView() {
     });
   }
 
+  function getAnswers() {
+    db.transaction((tx) => {
+      tx.executeSql("select * from answers", [], (_, { rows }) => {
+        setAnswers(rows._array);
+      });
+    });
+  }
+
   useEffect(() => {
     getQuizes();
     getQuestions();
+    getAnswers();
   }, []);
 
   return (
@@ -77,15 +69,21 @@ export default function AdminView() {
       <Divider style={{ marginVertical: 10 }} />
 
       {value === "quiz" ? (
-        <QuizesPart quizes={quizes} getQuizes={getQuizes} />
+        <QuizesPart db={db} quizes={quizes} getQuizes={getQuizes} />
       ) : value === "question" ? (
         <QuestionsPart
+          db={db}
           questions={questions}
           getQuestions={getQuestions}
           quizes={quizes}
         />
       ) : (
-        <AnswersPart />
+        <AnswersPart
+          db={db}
+          questions={questions}
+          getAnswers={getAnswers}
+          answers={answers}
+        />
       )}
     </View>
   );
