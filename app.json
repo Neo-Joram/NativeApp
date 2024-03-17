@@ -26,7 +26,8 @@
       "permissions": [
         "android.permission.NFC"
       ],
-      "compileSdkVersion": 31
+      "compileSdkVersion": 31,
+      "package": "com.neojoram.starttoquiz"
     },
     "web": {
       "bundler": "metro",
