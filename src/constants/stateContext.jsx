@@ -1,41 +1,23 @@
 import React, { createContext, useState } from "react";
 import PropTypes from "prop-types";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
 
 export const stateContext = createContext();
 
 export const StateProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    id: 1,
-    email: "neojoram12@gmail.com",
-    password: "neojoram",
-    role: "admin",
-  });
+  const [user, setUser] = useState({});
   const [loading, setLoading] = useState(false);
+  // const [user, setUser] = useState({
+  //   id: 1,
+  //   email: "neojoram12@gmail.com",
+  //   password: "neojoram",
+  //   role: "user",
+  // });
 
-  function openDatabase() {
-    if (Platform.OS === "web") {
-      return {
-        transaction: () => {
-          return {
-            executeSql: () => {},
-          };
-        },
-      };
-    }
-
-    const db = SQLite.openDatabase("mobiledb.db");
-    return db;
-  }
-  const db = openDatabase();
-  
   const stateValues = {
     user,
     setUser,
     loading,
     setLoading,
-    db,
   };
 
   return (

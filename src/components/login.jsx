@@ -8,9 +8,26 @@ import { stateContext } from "@/src/constants/stateContext";
 
 import { Link, useNavigation } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SQLite from "expo-sqlite";
+
+function openDatabase() {
+  if (Platform.OS === "web") {
+    return {
+      transaction: () => {
+        return {
+          executeSql: () => {},
+        };
+      },
+    };
+  }
+
+  const db = SQLite.openDatabase("mobiledb.db");
+  return db;
+}
+const db = openDatabase();
 
 export default function Login() {
-  const { db, setUser, loading, setLoading } = useContext(stateContext);
+  const { setUser, loading, setLoading } = useContext(stateContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pwd, setPwd] = useState(true);
@@ -20,31 +37,37 @@ export default function Login() {
     setPwd((p) => !p);
   }
 
-  function loginUser() {
+  async function loginUser() {
     setLoading(true);
-    db.transaction((tx) => {
-      tx.executeSql(
-        "select * from users where email=? && password=?",
-        [email, password],
-        (_, { rows }) => {
-          setLoading(false);
-          if (rows.length > 0) {
-            AsyncStorage.setItem("userSession", JSON.stringify(rows._array[0]))
-              .then(() => {
-                console.log("User session stored:", rows._array[0]);
-                setUser(rows._array[0]);
-                navigation.navigate("/quiz");
-              })
-              .catch((error) => {
-                console.log("Error storing user session:", error);
-              });
-          } else {
-            console.log("No user found.");
-          }
-        }
-      );
-    });
+
+    try {
+      const { rows } = await new Promise((resolve, reject) => {
+        db.transaction((tx) => {
+          tx.executeSql(
+            "select * from users where email=? AND password=?",
+            [email, password],
+            (_, result) => resolve(result),
+            (_, error) => reject(error)
+          );
+        });
+      });
+
+      if (rows.length > 0) {
+        const user = rows._array[0];
+        await AsyncStorage.setItem("userSession", JSON.stringify(user));
+        console.log("User session stored:", user);
+        setUser(user);
+        navigation.navigate("quiz");
+      } else {
+        console.log("No user found.");
+      }
+    } catch (error) {
+      console.log("Error executing SQL query or storing user session:", error);
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <View>
       <View style={[styles.title, { paddingVertical: 20 }]}>

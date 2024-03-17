@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from "react-native";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Text, View } from "../components/Themed";
 import { Icon } from "react-native-paper";
 import { MonoText } from "@/src/components/StyledText";
@@ -7,9 +7,26 @@ import { TextInput, Button } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
 
 import { Link, useNavigation } from "expo-router";
+import * as SQLite from "expo-sqlite";
+
+function openDatabase() {
+  if (Platform.OS === "web") {
+    return {
+      transaction: () => {
+        return {
+          executeSql: () => {},
+        };
+      },
+    };
+  }
+
+  const db = SQLite.openDatabase("mobiledb.db");
+  return db;
+}
+const db = openDatabase();
 
 export default function Register() {
-  const { db, loading, setLoading } = useContext(stateContext);
+  const { loading, setLoading } = useContext(stateContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pwd, setPwd] = useState(true);

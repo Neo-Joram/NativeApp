@@ -1,11 +1,32 @@
 import { useContext, useEffect } from "react";
-import { Text, View } from "../../components/Themed";
+import { View } from "../../components/Themed";
 import { stateContext } from "@/src/constants/stateContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AdminView, Login } from "../../components";
+import { AdminView, Login, UserView } from "../../components";
+import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
+import { IconButton } from "react-native-paper";
+import { useNavigation } from "expo-router";
+
+function openDatabase() {
+  if (Platform.OS === "web") {
+    return {
+      transaction: () => {
+        return {
+          executeSql: () => {},
+        };
+      },
+    };
+  }
+
+  const db = SQLite.openDatabase("mobiledb.db");
+  return db;
+}
+const db = openDatabase();
 
 export default function QuizScreen() {
-  const { db, user, setUser } = useContext(stateContext);
+  const { user, setUser } = useContext(stateContext);
+  const navigation = useNavigation();
 
   useEffect(() => {
     db.transaction((tx) => {
@@ -27,8 +48,7 @@ export default function QuizScreen() {
   useEffect(() => {
     async function getUserInfo() {
       const inUser = await AsyncStorage.getItem("userSession");
-      // setUser(inUser);
-      console.log(inUser);
+      setUser(JSON.parse(inUser));
     }
     getUserInfo();
 
@@ -46,16 +66,33 @@ export default function QuizScreen() {
     });
   }, []);
 
+  async function logout() {
+    try {
+      await AsyncStorage.removeItem("userSession");
+    } catch (error) {
+      console.log("Error removing user session:", error);
+    }
+    navigation.goBack();
+  }
+
   return (
-    <View>
+    <View style={{ height: "100%" }}>
       {user?.role === "admin" ? (
         <AdminView />
       ) : user?.role === "user" ? (
-        <View>
-          <Text>User view</Text>
-        </View>
+        <UserView />
       ) : (
         <Login />
+      )}
+
+      {user && (
+        <IconButton
+          icon="logout"
+          size={25}
+          mode="contained-tonal"
+          onPress={logout}
+          style={{ position: "absolute", bottom: 15, right: 15 }}
+        />
       )}
     </View>
   );
