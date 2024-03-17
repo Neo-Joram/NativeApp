@@ -69,6 +69,7 @@ export default function QuizScreen() {
   async function logout() {
     try {
       await AsyncStorage.removeItem("userSession");
+      setUser({});
     } catch (error) {
       console.log("Error removing user session:", error);
     }

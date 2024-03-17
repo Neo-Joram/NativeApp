@@ -1,7 +1,7 @@
 import { View } from "@/src/components/Themed";
 import { MonoText } from "@/src/components/StyledText";
 import { Divider, SegmentedButtons } from "react-native-paper";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import QuizesPart from "./quizes";
 import QuestionsPart from "./questions";

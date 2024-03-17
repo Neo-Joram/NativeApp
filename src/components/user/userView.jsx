@@ -68,11 +68,11 @@ export default function UserView() {
 
       {value === "quizes" ? (
         <View style={styles.quizList}>
-          <MonoText>Quizes to attempt</MonoText>
+          <MonoText style={{marginBottom: 10}}>Quizes to attempt</MonoText>
           {quizes.map((item) => (
             <View key={item.id} style={styles.quiz}>
               <View style={styles.quizName}>
-                <Icon source="notebook" color={"white"} size={20} />
+                <Icon source="notebook" size={20} />
                 <MonoText>{item.quizName}</MonoText>
               </View>
               <Button>Attempt quiz</Button>
@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
   title: {
     display: "flex",
     flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 10,
   },
   tabs: {
