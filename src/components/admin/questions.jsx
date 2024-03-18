@@ -18,7 +18,7 @@ export default function QuestionsPart({ db, quizes, questions, getQuestions }) {
   const [visible, setVisible] = useState(false);
   const [question, setQuestion] = useState("");
   const [page, setPage] = useState(0);
-  const [numberOfItemsPerPageList] = useState([5, 8, 10]);
+  const [numberOfItemsPerPageList] = useState([12, 15, 20]);
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );

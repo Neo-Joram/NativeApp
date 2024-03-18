@@ -4,29 +4,20 @@ import { MonoText } from "@/src/components/StyledText";
 import { stateContext } from "@/src/constants/stateContext";
 import { StyleSheet } from "react-native";
 import { Button, SegmentedButtons, Icon } from "react-native-paper";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
+import Attempt from "./attempt";
 
-function openDatabase() {
-  if (Platform.OS === "web") {
-    return {
-      transaction: () => {
-        return {
-          executeSql: () => {},
-        };
-      },
-    };
-  }
-
-  const db = SQLite.openDatabase("mobiledb.db");
-  return db;
-}
-const db = openDatabase();
-
-export default function UserView() {
+export default function UserView({ db }) {
   const { user } = useContext(stateContext);
   const [value, setValue] = useState("quizes");
   const [quizes, setQuizes] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState([]);
+  const [attempts, setAttempts] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [quizId, setQuizId] = useState();
+
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
 
   function getQuizes() {
     db.transaction((tx) => {
@@ -36,8 +27,39 @@ export default function UserView() {
     });
   }
 
+  function getQuestions() {
+    db.transaction((tx) => {
+      tx.executeSql("select * from questions", [], (_, { rows }) => {
+        setQuestions(rows._array);
+      });
+    });
+  }
+
+  function getAnswers() {
+    db.transaction((tx) => {
+      tx.executeSql("select * from answers", [], (_, { rows }) => {
+        setAnswers(rows._array);
+      });
+    });
+  }
+
+  function getAttempts() {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "select * from attempts where userId=? order by id desc",
+        [user?.id],
+        (_, { rows }) => {
+          setAttempts(rows._array);
+        }
+      );
+    });
+  }
+
   useEffect(() => {
     getQuizes();
+    getQuestions();
+    getAnswers();
+    getAttempts();
   }, []);
 
   return (
@@ -68,14 +90,23 @@ export default function UserView() {
 
       {value === "quizes" ? (
         <View style={styles.quizList}>
-          <MonoText style={{marginBottom: 10}}>Quizes to attempt</MonoText>
+          <MonoText style={{ marginBottom: 10 }}>Quizes to attempt</MonoText>
           {quizes.map((item) => (
             <View key={item.id} style={styles.quiz}>
               <View style={styles.quizName}>
                 <Icon source="notebook" size={20} />
-                <MonoText>{item.quizName}</MonoText>
+                <MonoText>
+                  {item.quizName + " (" + attempts.length + ")"}
+                </MonoText>
               </View>
-              <Button>Attempt quiz</Button>
+              <Button
+                onPress={() => {
+                  showModal();
+                  setQuizId(item.id);
+                }}
+              >
+                Attempt quiz
+              </Button>
             </View>
           ))}
 
@@ -87,6 +118,18 @@ export default function UserView() {
           )}
         </View>
       ) : null}
+
+      <Attempt
+        db={db}
+        visible={visible}
+        hideModal={hideModal}
+        quizId={quizId}
+        quizes={quizes}
+        questions={questions}
+        answers={answers}
+        attempts={attempts}
+        getAttempts={getAttempts}
+      />
     </View>
   );
 }

@@ -13,14 +13,21 @@ import { DataTable } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
 import { Picker } from "@react-native-picker/picker";
 
-export default function AnswersPart({ db, questions, answers, getAnswers }) {
+export default function AnswersPart({
+  db,
+  quizes,
+  questions,
+  answers,
+  getAnswers,
+}) {
   const { loading, setLoading } = useContext(stateContext);
   const [visible, setVisible] = useState(false);
   const [answer, setAnswer] = useState("");
   const [isCorrect, setIsCorrect] = useState(false);
   const [selectedValue, setSelectedValue] = useState("");
+  const [quiz, setQuiz] = useState("");
   const [page, setPage] = useState(0);
-  const [numberOfItemsPerPageList] = useState([5, 8, 10]);
+  const [numberOfItemsPerPageList] = useState([12, 15, 20]);
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );
@@ -111,6 +118,10 @@ export default function AnswersPart({ db, questions, answers, getAnswers }) {
       });
     }
   }
+
+  const filteredQuestions = questions.filter(
+    (element) => element.quizId === quiz
+  );
 
   return (
     <View>
@@ -203,13 +214,28 @@ export default function AnswersPart({ db, questions, answers, getAnswers }) {
 
           <View style={{ backgroundColor: "transparent" }}>
             <Picker
+              selectedValue={quiz}
+              onValueChange={(itemValue, itemIndex) => setQuiz(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Quiz..." enabled={false} />
+              {quizes.map((item, index) => (
+                <Picker.Item
+                  key={index}
+                  label={index + 1 + " " + item.quizName}
+                  value={item.id}
+                />
+              ))}
+            </Picker>
+            <Picker
               selectedValue={selectedValue}
               onValueChange={(itemValue, itemIndex) =>
                 setSelectedValue(itemValue)
               }
               style={styles.picker}
             >
-              {questions.map((item, index) => (
+              <Picker.Item label="Question..." enabled={false} />
+              {filteredQuestions.map((item, index) => (
                 <Picker.Item
                   key={index}
                   label={index + 1 + " " + item.question}

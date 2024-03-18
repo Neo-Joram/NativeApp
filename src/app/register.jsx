@@ -5,7 +5,6 @@ import { Icon } from "react-native-paper";
 import { MonoText } from "@/src/components/StyledText";
 import { TextInput, Button } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
-
 import { Link, useNavigation } from "expo-router";
 import * as SQLite from "expo-sqlite";
 

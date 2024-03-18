@@ -80,6 +80,7 @@ export default function AdminView({ db }) {
       ) : (
         <AnswersPart
           db={db}
+          quizes={quizes}
           questions={questions}
           getAnswers={getAnswers}
           answers={answers}

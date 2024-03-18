@@ -3,10 +3,10 @@ import { View } from "../../components/Themed";
 import { stateContext } from "@/src/constants/stateContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AdminView, Login, UserView } from "../../components";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
 import { IconButton } from "react-native-paper";
 import { useNavigation } from "expo-router";
+import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
 function openDatabase() {
   if (Platform.OS === "web") {
@@ -101,7 +101,7 @@ export default function QuizScreen() {
       {user?.role === "admin" ? (
         <AdminView db={db} />
       ) : user?.role === "user" ? (
-        <UserView />
+        <UserView db={db} />
       ) : (
         <Login />
       )}

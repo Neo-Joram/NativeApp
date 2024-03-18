@@ -35,7 +35,7 @@ export default function QuizesPart({ quizes, getQuizes }) {
   const [visible, setVisible] = useState(false);
   const [quizName, setQuizName] = useState("");
   const [page, setPage] = useState(0);
-  const [numberOfItemsPerPageList] = useState([5, 8, 10]);
+  const [numberOfItemsPerPageList] = useState([12, 15, 20]);
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );
