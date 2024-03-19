@@ -22,10 +22,11 @@ function openDatabase() {
   const db = SQLite.openDatabase("mobiledb.db");
   return db;
 }
+
 const db = openDatabase();
 
 export default function QuizScreen() {
-  const { user, setUser } = useContext(stateContext);
+  const { user, setUser, isConnected } = useContext(stateContext);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -46,23 +47,6 @@ export default function QuizScreen() {
         "create table if not exists attempts (id integer primary key not null, userId integer, quizId integer, marks integer, foreign key (userId) references users(id), foreign key (quizId) references quizes(id))"
       );
     });
-    // db.transaction((tx) => {
-    //   tx.executeSql(
-    //     "BEGIN TRANSACTION; " +
-    //       "DELETE FROM questions; " +
-    //       "DELETE FROM quizes; " +
-    //       "DELETE FROM sqlite_sequence WHERE name='questions'; " +
-    //       "DELETE FROM sqlite_sequence WHERE name='quizes'; " +
-    //       "COMMIT;",
-    //     [],
-    //     () => {
-    //       console.log("Tables truncated successfully.");
-    //     },
-    //     (_, error) => {
-    //       console.log("Error truncating tables:", error);
-    //     }
-    //   );
-    // });
   }, []);
 
   useEffect(() => {

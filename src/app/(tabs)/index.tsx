@@ -1,10 +1,33 @@
 import { StyleSheet } from "react-native";
 
-import EditScreenInfo from "@/src/components/EditScreenInfo";
 import NetworkInfo from "@/src/components/networkInfo";
 import { Text, View } from "@/src/components/Themed";
+import * as Notifications from "expo-notifications";
+import { Button, Snackbar } from "react-native-paper";
+import { stateContext } from "@/src/constants/stateContext";
+import { useContext } from "react";
 
 export default function TabOneScreen() {
+  const { snackVisible, isConnected, setSnackVisible } =
+    useContext(stateContext);
+
+  const sendNotification = async () => {
+    let token = await Notifications.getExpoPushTokenAsync();
+
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: token.data,
+        title: "Hello!",
+        body: "This is a test notification",
+      }),
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home Page</Text>
@@ -13,8 +36,20 @@ export default function TabOneScreen() {
         lightColor="#eee"
         darkColor="rgba(255,255,255,0.1)"
       />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Button mode="contained" icon="bell" onPress={sendNotification}>
+        Notify me
+      </Button>
       <NetworkInfo />
+      <Snackbar
+        visible={snackVisible}
+        onDismiss={() => setSnackVisible(false)}
+        action={{
+          label: "Hide",
+          onPress: () => setSnackVisible(false),
+        }}
+      >
+        {isConnected ? "You are connected" : "lost connection"}
+      </Snackbar>
     </View>
   );
 }
@@ -25,6 +60,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
+    marginTop: 20,
     fontSize: 20,
     fontWeight: "bold",
   },

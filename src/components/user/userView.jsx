@@ -117,7 +117,34 @@ export default function UserView({ db }) {
             </View>
           )}
         </View>
-      ) : null}
+      ) : (
+        <View style={styles.quizList}>
+          <MonoText style={{ marginBottom: 10 }}>
+            Latest marks you acquired
+          </MonoText>
+          {quizes.map((item) => (
+            <View key={item.id} style={styles.quiz}>
+              <View style={styles.quizName}>
+                <Icon source="check" size={20} />
+                <MonoText>
+                  {item.quizName + " (*" + attempts.length + ")"}
+                </MonoText>
+              </View>
+              <Button mode="elevated">
+                {attempts.find((element) => element.quizId === item.id).marks +
+                  "%"}
+              </Button>
+            </View>
+          ))}
+
+          {quizes.length === 0 && (
+            <View style={styles.lostQuizes}>
+              <Icon source="notebook" color={"white"} size={20} />
+              <MonoText>No attempts available</MonoText>
+            </View>
+          )}
+        </View>
+      )}
 
       <Attempt
         db={db}
