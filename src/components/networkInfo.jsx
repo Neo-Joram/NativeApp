@@ -27,6 +27,8 @@ export default function NetWorkInfo() {
     };
 
     fetchNetworkInfo();
+    const intervalId = setInterval(fetchNetworkInfo, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -44,6 +46,8 @@ export default function NetWorkInfo() {
     };
 
     fetchBatteryInfo();
+    const intervalId = setInterval(fetchBatteryInfo, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
