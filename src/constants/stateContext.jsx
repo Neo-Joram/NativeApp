@@ -17,6 +17,8 @@ export const StateProvider = ({ children }) => {
       setIsConnected(networkState.isConnected);
     };
     fetchNetworkInfo();
+    const intervalId = setInterval(fetchNetworkInfo, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
