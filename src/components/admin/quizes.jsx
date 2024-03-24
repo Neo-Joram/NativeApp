@@ -13,6 +13,7 @@ import { DataTable } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
 import * as SQLite from "expo-sqlite";
 import { Platform } from "react-native";
+import axios from "axios";
 
 function openDatabase() {
   if (Platform.OS === "web") {
@@ -31,7 +32,7 @@ function openDatabase() {
 const db = openDatabase();
 
 export default function QuizesPart({ quizes, getQuizes }) {
-  const { loading, setLoading } = useContext(stateContext);
+  const { loading, setLoading, isConnected } = useContext(stateContext);
   const [visible, setVisible] = useState(false);
   const [quizName, setQuizName] = useState("");
   const [page, setPage] = useState(0);
@@ -56,9 +57,21 @@ export default function QuizesPart({ quizes, getQuizes }) {
     showModal();
   }
 
-  async function quizAction() {
-    if (updateData?.action === "delete") {
-      setLoading(true);
+  function deleteQuiz() {
+    setLoading(true);
+    if (isConnected) {
+      axios
+        .post("http://localhost:3003/quiz/delete", { id })
+        .then((res) => {
+          console.log(res);
+          setLoading(false);
+          getQuizes();
+        })
+        .catch((error) => {
+          console.error("Error deleting quiz:", error);
+          setLoading(false);
+        });
+    } else {
       db.transaction((tx) => {
         tx.executeSql(
           "delete from quizes where id=?",
@@ -74,6 +87,11 @@ export default function QuizesPart({ quizes, getQuizes }) {
           }
         );
       });
+    }
+  }
+
+  async function quizAction() {
+    if (updateData?.action === "delete") {
     } else if (updateData?.action === "update") {
       setLoading(true);
       db.transaction((tx) => {
@@ -137,7 +155,7 @@ export default function QuizesPart({ quizes, getQuizes }) {
 
         {quizes.slice(from, to).map((item, index) => (
           <DataTable.Row key={index}>
-            <DataTable.Cell>{index+1}</DataTable.Cell>
+            <DataTable.Cell>{index + 1}</DataTable.Cell>
             <DataTable.Cell>{item.quizName}</DataTable.Cell>
             <DataTable.Cell numeric>{item.dateTime}</DataTable.Cell>
             <DataTable.Cell numeric>

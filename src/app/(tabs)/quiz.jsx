@@ -7,6 +7,9 @@ import { IconButton } from "react-native-paper";
 import { useNavigation } from "expo-router";
 import * as SQLite from "expo-sqlite";
 import { Platform } from "react-native";
+import { synchronizeQuizes } from "../sync/syncQuizes";
+import { synchronizeQuestions } from "../sync/syncQuestions";
+import { synchronizeAnswers } from "../sync/syncAnswers";
 
 function openDatabase() {
   if (Platform.OS === "web") {
@@ -26,7 +29,7 @@ function openDatabase() {
 const db = openDatabase();
 
 export default function QuizScreen() {
-  const { user, setUser, isConnected } = useContext(stateContext);
+  const { user, setUser } = useContext(stateContext);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -68,6 +71,10 @@ export default function QuizScreen() {
         }
       );
     });
+
+    synchronizeQuizes(db);
+    synchronizeQuestions(db);
+    synchronizeAnswers(db);
   }, []);
 
   async function logout() {

@@ -131,7 +131,7 @@ export default function UserView({ db }) {
                 </MonoText>
               </View>
               <Button mode="elevated">
-                {attempts.find((element) => element.quizId === item.id).marks +
+                {attempts.find((element) => element?.quizId === item.id)?.marks +
                   "%"}
               </Button>
             </View>
