@@ -47,10 +47,12 @@ async function queryPostgreSQLData() {
 
 async function insertDataToPostgreSQL(data) {
   try {
-    const response = await axios.post(
-      "https://midapp.onrender.com/quiz/add",
-      {data}
-    );
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/quiz/add",
+      data: data,
+    };
+    const response = await axios.request(config);
     console.log("Data inserted into PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error inserting data into PostgreSQL:", error);
