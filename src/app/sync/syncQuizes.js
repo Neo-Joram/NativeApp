@@ -3,7 +3,6 @@ import axios from "axios";
 export async function synchronizeQuizes(db) {
   const sqliteData = await querySQLiteData(db);
   const postgresData = await queryPostgreSQLData();
-  console.log(sqliteData);
 
   sqliteData.map((sqliteRow) => {
     const matchingData = postgresData.quizzes.find(
@@ -50,7 +49,7 @@ async function insertDataToPostgreSQL(data) {
   try {
     const response = await axios.post(
       "https://midapp.onrender.com/quiz/add",
-      data
+      {data}
     );
     console.log("Data inserted into PostgreSQL:", response.data);
   } catch (error) {
