@@ -4,15 +4,15 @@ export async function synchronizeAnswers(db) {
   const sqliteData = await querySQLiteAnswers(db);
   const postgresData = await queryPostgreSQLAnswers(db);
 
-  for (const postData of postgresData) {
+  postgresData.answers.map((postData) => {
     const matchingData = sqliteData.find(
       (sqliteRow) => sqliteRow.id === postData.id
     );
 
     if (!matchingData) {
-      await insertAnswerToSQLite(postData);
+      insertAnswerToSQLite(postData);
     }
-  }
+  });
 }
 
 async function querySQLiteAnswers(db) {
@@ -36,7 +36,7 @@ async function querySQLiteAnswers(db) {
 async function queryPostgreSQLAnswers() {
   try {
     let reqOptions = {
-      url: "https://mobile.express.rw/answers/retrieve",
+      url: "https://midapp.onrender.com/answers/retrieve",
       method: "GET",
     };
     const response = await axios.request(reqOptions);

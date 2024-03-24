@@ -5,11 +5,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AdminView, Login, UserView } from "../../components";
 import { IconButton } from "react-native-paper";
 import { useNavigation } from "expo-router";
-import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
 import { synchronizeQuizes } from "../sync/syncQuizes";
 import { synchronizeQuestions } from "../sync/syncQuestions";
 import { synchronizeAnswers } from "../sync/syncAnswers";
+import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
 function openDatabase() {
   if (Platform.OS === "web") {

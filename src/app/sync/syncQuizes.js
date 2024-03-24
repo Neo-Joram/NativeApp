@@ -1,19 +1,19 @@
 import axios from "axios";
 
 export async function synchronizeQuizes(db) {
-  console.log("Quiz syncing");
   const sqliteData = await querySQLiteData(db);
-  const postgresData = await queryPostgreSQLData(db);
+  const postgresData = await queryPostgreSQLData();
+  console.log(sqliteData);
 
-  for (const postData of postgresData) {
-    const matchingData = sqliteData.find(
-      (sqliteRow) => sqliteRow.id === postData.id
+  sqliteData.map((sqliteRow) => {
+    const matchingData = postgresData.quizzes.find(
+      (postData) => postData.id === sqliteRow.id
     );
 
     if (!matchingData) {
-      await insertDataToSQLite(postData, db);
+      insertDataToPostgreSQL(sqliteRow);
     }
-  }
+  });
 }
 
 async function querySQLiteData(db) {
@@ -36,11 +36,9 @@ async function querySQLiteData(db) {
 
 async function queryPostgreSQLData() {
   try {
-    let reqOptions = {
-      url: "https://mobile.express.rw/quiz/retrieve",
-      method: "GET",
-    };
-    const response = await axios.request(reqOptions);
+    const response = await axios.get(
+      "https://midapp.onrender.com/quiz/retrieve"
+    );
     return response.data;
   } catch (error) {
     console.error("Error querying data from PostgreSQL:", error);
@@ -48,23 +46,15 @@ async function queryPostgreSQLData() {
   }
 }
 
-async function insertDataToSQLite(data, db) {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO quizes (id, quizName, dateTime) VALUES (?, ?, ?)",
-        [data.id, data.quizName, data.dateTime],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) {
-            resolve();
-          } else {
-            reject(new Error("Failed to insert quizes into SQLite database."));
-          }
-        },
-        (_, error) => {
-          reject(error);
-        }
-      );
-    });
-  });
+async function insertDataToPostgreSQL(data) {
+  try {
+    const response = await axios.post(
+      "https://midapp.onrender.com/quiz/add",
+      data
+    );
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
 }
