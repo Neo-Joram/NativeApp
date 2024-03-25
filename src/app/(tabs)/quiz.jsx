@@ -67,7 +67,7 @@ export default function QuizScreen() {
           console.log(rows._array);
         },
         (_, error) => {
-          console.log("Error checking tables:", error);
+          console.log("Error getting tables:", error);
         }
       );
     });
