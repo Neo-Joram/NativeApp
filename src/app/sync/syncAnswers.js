@@ -71,7 +71,6 @@ async function insertDataToPostgreSQL(data) {
     console.log("Data inserted into PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error inserting data into PostgreSQL:", error);
-    throw error;
   }
 }
 
@@ -86,7 +85,6 @@ async function updateDataInPostgreSQL(data) {
     console.log("Data updated in PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error updating answer in PostgreSQL:", error);
-    throw error;
   }
 }
 
@@ -101,7 +99,6 @@ async function deleteDataFromPostgreSQL(data) {
     console.log("Data deleted from PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error deleting answer in PostgreSQL:", error);
-    throw error;
   }
 }
 

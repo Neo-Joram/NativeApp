@@ -3,6 +3,8 @@ import axios from "axios";
 export async function synchronizeQuizes(db) {
   const sqliteData = await querySQLiteData(db);
   const postgresData = await queryPostgreSQLData();
+  console.log(postgresData);
+  console.log(sqliteData);
 
   sqliteData.forEach((sqliteRow) => {
     const correspondingRow = postgresData.quizzes.find(
@@ -69,7 +71,6 @@ async function insertDataToPostgreSQL(data) {
     console.log("Data inserted into PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error inserting data into PostgreSQL:", error);
-    throw error;
   }
 }
 
@@ -84,7 +85,6 @@ async function updateDataInPostgreSQL(data) {
     console.log("Data updated in PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error updating quiz in PostgreSQL:", error);
-    throw error;
   }
 }
 
@@ -99,7 +99,6 @@ async function deleteDataFromPostgreSQL(data) {
     console.log("Data deleted from PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error deleting quiz PostgreSQL:", error);
-    throw error;
   }
 }
 
