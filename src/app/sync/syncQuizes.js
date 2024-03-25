@@ -4,13 +4,25 @@ export async function synchronizeQuizes(db) {
   const sqliteData = await querySQLiteData(db);
   const postgresData = await queryPostgreSQLData();
 
-  sqliteData.map((sqliteRow) => {
-    const matchingData = postgresData.quizzes.find(
-      (postData) => postData.id === sqliteRow.id
+  sqliteData.forEach((sqliteRow) => {
+    const correspondingRow = postgresData.quizzes.find(
+      (element) => element.id === sqliteRow.id
     );
-
-    if (!matchingData) {
+    if (correspondingRow) {
+      if (!isEqual(correspondingRow, sqliteRow)) {
+        updateDataInPostgreSQL(sqliteRow);
+      }
+    } else {
       insertDataToPostgreSQL(sqliteRow);
+    }
+  });
+
+  postgresData.quizzes.forEach((postgresRow) => {
+    const correspondingRow = sqliteData.find(
+      (element) => element.id === postgresRow.id
+    );
+    if (!correspondingRow) {
+      deleteDataFromPostgreSQL(postgresRow);
     }
   });
 }
@@ -50,6 +62,36 @@ async function insertDataToPostgreSQL(data) {
     let config = {
       method: "POST",
       url: "https://midapp.onrender.com/quiz/add",
+      data: data,
+    };
+    const response = await axios.request(config);
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
+}
+
+async function updateDataInPostgreSQL(data) {
+  try {
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/quiz/update",
+      data: data,
+    };
+    const response = await axios.request(config);
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
+}
+
+async function deleteDataFromPostgreSQL(data) {
+  try {
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/quiz/delete",
       data: data,
     };
     const response = await axios.request(config);

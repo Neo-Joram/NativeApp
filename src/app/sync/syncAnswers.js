@@ -1,21 +1,33 @@
 import axios from "axios";
 
 export async function synchronizeAnswers(db) {
-  const sqliteData = await querySQLiteAnswers(db);
-  const postgresData = await queryPostgreSQLAnswers(db);
+  const sqliteData = await querySQLiteData(db);
+  const postgresData = await queryPostgreSQLData();
 
-  postgresData.answers.map((postData) => {
-    const matchingData = sqliteData.find(
-      (sqliteRow) => sqliteRow.id === postData.id
+  sqliteData.forEach((sqliteRow) => {
+    const correspondingRow = postgresData.quizzes.find(
+      (element) => element.id === sqliteRow.id
     );
+    if (correspondingRow) {
+      if (!isEqual(correspondingRow, sqliteRow)) {
+        updateDataInPostgreSQL(sqliteRow);
+      }
+    } else {
+      insertDataToPostgreSQL(sqliteRow);
+    }
+  });
 
-    if (!matchingData) {
-      insertAnswerToSQLite(postData);
+  postgresData.quizzes.forEach((postgresRow) => {
+    const correspondingRow = sqliteData.find(
+      (element) => element.id === postgresRow.id
+    );
+    if (!correspondingRow) {
+      deleteDataFromPostgreSQL(postgresRow);
     }
   });
 }
 
-async function querySQLiteAnswers(db) {
+async function querySQLiteData(db) {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -33,7 +45,7 @@ async function querySQLiteAnswers(db) {
   });
 }
 
-async function queryPostgreSQLAnswers() {
+async function queryPostgreSQLData() {
   try {
     let reqOptions = {
       url: "https://midapp.onrender.com/answers/retrieve",
@@ -47,23 +59,47 @@ async function queryPostgreSQLAnswers() {
   }
 }
 
-async function insertAnswerToSQLite(data, db) {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO answers (id, questionId, answer, isCorrect) VALUES (?, ?, ?, ?)",
-        [data.id, data.questionId, data.answer, data.isCorrect],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) {
-            resolve();
-          } else {
-            reject(new Error("Failed to insert answer into SQLite database."));
-          }
-        },
-        (_, error) => {
-          reject(error);
-        }
-      );
-    });
-  });
+async function insertDataToPostgreSQL(data) {
+  try {
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/answers/add",
+      data: data,
+    };
+    const response = await axios.request(config);
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
+}
+
+async function updateDataInPostgreSQL(data) {
+  try {
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/answers/update",
+      data: data,
+    };
+    const response = await axios.request(config);
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
+}
+
+async function deleteDataFromPostgreSQL(data) {
+  try {
+    let config = {
+      method: "POST",
+      url: "https://midapp.onrender.com/answers/delete",
+      data: data,
+    };
+    const response = await axios.request(config);
+    console.log("Data inserted into PostgreSQL:", response.data);
+  } catch (error) {
+    console.error("Error inserting data into PostgreSQL:", error);
+    throw error;
+  }
 }
