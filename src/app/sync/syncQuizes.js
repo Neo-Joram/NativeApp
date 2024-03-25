@@ -9,8 +9,6 @@ export async function synchronizeQuizes(db) {
       (element) => element.id === sqliteRow.id
     );
 
-    console.log(correspondingRow);
-
     if (correspondingRow !== undefined) {
       if (!isEqual(correspondingRow, sqliteRow)) {
         updateDataInPostgreSQL(sqliteRow);
@@ -85,7 +83,7 @@ async function updateDataInPostgreSQL(data) {
     const response = await axios.request(config);
     console.log("Data updated in PostgreSQL:", response.data);
   } catch (error) {
-    console.error("Error inserting data into PostgreSQL:", error);
+    console.error("Error updating quiz in PostgreSQL:", error);
     throw error;
   }
 }
@@ -100,7 +98,7 @@ async function deleteDataFromPostgreSQL(data) {
     const response = await axios.request(config);
     console.log("Data deleted from PostgreSQL:", response.data);
   } catch (error) {
-    console.error("Error inserting data into PostgreSQL:", error);
+    console.error("Error deleting quiz PostgreSQL:", error);
     throw error;
   }
 }
