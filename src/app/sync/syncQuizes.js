@@ -80,7 +80,7 @@ async function updateDataInPostgreSQL(data) {
       data: data,
     };
     const response = await axios.request(config);
-    console.log("Data inserted into PostgreSQL:", response.data);
+    console.log("Data updated in PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error inserting data into PostgreSQL:", error);
     throw error;
@@ -95,7 +95,7 @@ async function deleteDataFromPostgreSQL(data) {
       data: data,
     };
     const response = await axios.request(config);
-    console.log("Data inserted into PostgreSQL:", response.data);
+    console.log("Data deleted from PostgreSQL:", response.data);
   } catch (error) {
     console.error("Error inserting data into PostgreSQL:", error);
     throw error;
