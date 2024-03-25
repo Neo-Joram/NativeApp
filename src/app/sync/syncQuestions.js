@@ -4,16 +4,15 @@ export async function synchronizeQuestions(db) {
   const sqliteData = await querySQLiteData(db);
   const postgresData = await queryPostgreSQLData();
 
-  sqliteData.forEach((sqliteRow) => {
+  sqliteData.forEach(async (sqliteRow) => {
     const correspondingRow = postgresData.questions.find(
       (element) => element.id === sqliteRow.id
     );
     if (correspondingRow !== undefined) {
-      console.log(correspondingRow, sqliteRow);
       isEqual(correspondingRow, sqliteRow) === false &&
-        updateDataInPostgreSQL(sqliteRow);
+        await updateDataInPostgreSQL(sqliteRow);
     } else {
-      insertDataToPostgreSQL(sqliteRow);
+      await insertDataToPostgreSQL(sqliteRow);
     }
   });
 
