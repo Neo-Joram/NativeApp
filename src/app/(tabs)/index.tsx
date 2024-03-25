@@ -5,11 +5,17 @@ import { Text, View } from "@/src/components/Themed";
 import * as Notifications from "expo-notifications";
 import { Button, Snackbar } from "react-native-paper";
 import { stateContext } from "@/src/constants/stateContext";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import MapView, { Marker } from "react-native-maps";
 
 export default function TabOneScreen() {
   const { snackVisible, isConnected, setSnackVisible } =
     useContext(stateContext);
+  const [x, setX] = useState({
+    latitude: -1.9517539,
+    longitude: 30.1055004,
+  });
+  const [viewMap, setViewMap] = useState(false);
 
   const sendNotification = async () => {
     let token = await Notifications.getExpoPushTokenAsync();
@@ -28,6 +34,10 @@ export default function TabOneScreen() {
     });
   };
 
+  function openMap() {
+    setViewMap((prev) => !prev);
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home Page</Text>
@@ -40,6 +50,28 @@ export default function TabOneScreen() {
         Notify me
       </Button>
       <NetworkInfo />
+
+      <Button mode="contained" icon="map" onPress={openMap}>
+        View my home location!
+      </Button>
+      {viewMap && (
+        <MapView
+          initialRegion={{
+            latitude: -1.9517539,
+            longitude: 30.1055004,
+            // latitudeDelta: 0.0922,
+            // longitudeDelta: 0.0421,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          }}
+          mapType="satellite"
+          zoomEnabled={true}
+          style={styles.map}
+        >
+          <Marker draggable coordinate={x} />
+        </MapView>
+      )}
+
       <Snackbar
         visible={snackVisible}
         onDismiss={() => setSnackVisible(false)}
@@ -83,5 +115,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "gray",
     borderRadius: 10,
+  },
+  map: {
+    marginHorizontal: 10,
+    height: 400,
+    width: "100%",
+    marginTop: 10,
   },
 });

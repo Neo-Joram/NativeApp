@@ -10,6 +10,7 @@ export async function synchronizeAnswers(db) {
     );
 
     if (correspondingRow !== undefined) {
+      console.log(correspondingRow, sqliteRow);
       isEqual(correspondingRow, sqliteRow) === false &&
         (await updateDataInPostgreSQL(sqliteRow));
     } else {
