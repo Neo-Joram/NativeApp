@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { View } from "../../components/Themed";
 import { stateContext } from "@/src/constants/stateContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -9,7 +9,7 @@ import { synchronizeQuizes } from "../sync/syncQuizes";
 import { synchronizeQuestions } from "../sync/syncQuestions";
 import { synchronizeAnswers } from "../sync/syncAnswers";
 import * as SQLite from "expo-sqlite";
-import { Platform } from "react-native";
+import { Alert, AppState, Platform } from "react-native";
 
 function openDatabase() {
   if (Platform.OS === "web") {
@@ -30,6 +30,7 @@ const db = openDatabase();
 
 export default function QuizScreen() {
   const { user, setUser } = useContext(stateContext);
+  const [appState, setAppState] = useState(AppState.currentState);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -81,11 +82,40 @@ export default function QuizScreen() {
     try {
       await AsyncStorage.removeItem("userSession");
       setUser({});
+      Alert.alert("Logout", "You have been logged out.");
     } catch (error) {
       console.log("Error removing user session:", error);
     }
     navigation.goBack();
   }
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (appState === "active" && nextAppState === "background") {
+        startLogoutTimer();
+      } else if (appState === "background" && nextAppState === "active") {
+        cancelLogoutTimer();
+      }
+      setAppState(nextAppState);
+    };
+
+    AppState.addEventListener("change", handleAppStateChange);
+
+    return () => {
+      AppState.removeEventListener("change", handleAppStateChange);
+      cancelLogoutTimer();
+    };
+  }, [appState]);
+
+  let logoutTimer;
+
+  const startLogoutTimer = () => {
+    logoutTimer = setTimeout(logout, 1 * 60 * 1000);
+  };
+
+  const cancelLogoutTimer = () => {
+    clearTimeout(logoutTimer);
+  };
 
   return (
     <View style={{ height: "100%" }}>
