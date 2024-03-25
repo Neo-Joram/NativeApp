@@ -102,7 +102,6 @@ export default function QuizScreen() {
     AppState.addEventListener("change", handleAppStateChange);
 
     return () => {
-      AppState.removeEventListener("change", handleAppStateChange);
       cancelLogoutTimer();
     };
   }, [appState]);
