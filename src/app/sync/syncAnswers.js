@@ -5,10 +5,11 @@ export async function synchronizeAnswers(db) {
   const postgresData = await queryPostgreSQLData();
 
   sqliteData.forEach((sqliteRow) => {
-    const correspondingRow = postgresData.quizzes.find(
+    const correspondingRow = postgresData.answers.find(
       (element) => element.id === sqliteRow.id
     );
-    if (correspondingRow) {
+    
+    if (correspondingRow !== undefined) {
       if (!isEqual(correspondingRow, sqliteRow)) {
         updateDataInPostgreSQL(sqliteRow);
       }

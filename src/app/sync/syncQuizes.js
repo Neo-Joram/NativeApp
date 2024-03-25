@@ -8,7 +8,8 @@ export async function synchronizeQuizes(db) {
     const correspondingRow = postgresData.quizzes.find(
       (element) => element.id === sqliteRow.id
     );
-    if (correspondingRow) {
+    
+    if (correspondingRow !== undefined) {
       if (!isEqual(correspondingRow, sqliteRow)) {
         updateDataInPostgreSQL(sqliteRow);
       }
