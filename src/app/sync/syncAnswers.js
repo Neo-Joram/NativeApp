@@ -10,7 +10,6 @@ export async function synchronizeAnswers(db) {
     );
 
     if (correspondingRow !== undefined) {
-      console.log(correspondingRow, sqliteRow);
       isEqual(correspondingRow, sqliteRow) === false &&
         (await updateDataInPostgreSQL(sqliteRow));
     } else {
@@ -18,12 +17,12 @@ export async function synchronizeAnswers(db) {
     }
   });
 
-  postgresData.answers.forEach((postgresRow) => {
+  postgresData.answers.forEach(async (postgresRow) => {
     const correspondingRow = sqliteData.find(
       (element) => element.id === postgresRow.id
     );
-    if (!correspondingRow) {
-      deleteDataFromPostgreSQL(postgresRow);
+    if (correspondingRow === undefined) {
+      await deleteDataFromPostgreSQL(postgresRow);
     }
   });
 }
